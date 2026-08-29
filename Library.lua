@@ -11308,6 +11308,7 @@ function Library:CreateWindow(WindowInfo)
             Name = Name,
             Description = Description,
             Type = if IsNormal then "Normal" else "Groupbox",
+            IsTab = true,
 
             Connections = {},
             Destroyed = false,
@@ -11530,7 +11531,7 @@ function Library:CreateWindow(WindowInfo)
                 AutomaticSize = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 0),
-                Parent = if ParentObj.Type == "Groupbox" then ParentObj.Container else (Info.Side == 1 and TabLeft or TabRight),
+                Parent = if ParentObj.Type == "Groupbox" and not ParentObj.IsTab then ParentObj.Container else (Info.Side == 1 and TabLeft or TabRight),
             })
             New("UIListLayout", {
                 Padding = UDim.new(0, 6),
@@ -11589,7 +11590,7 @@ function Library:CreateWindow(WindowInfo)
                 Holder = TabboxHolder,
                 Tabs = {},
 
-                ParentBox = if ParentObj.Type == "Groupbox" then ParentObj else nil,
+                ParentBox = if ParentObj.Type == "Groupbox" and not ParentObj.IsTab then ParentObj else nil,
             }
 
             function Tabbox:UpdateCorners()
@@ -11768,7 +11769,7 @@ function Library:CreateWindow(WindowInfo)
                     end
 
                     TabboxHolder.Size = UDim2.new(1, 0, 0, ContentSize + 35)
-                    if ParentObj.Type == "Groupbox" then
+                    if ParentObj.Type == "Groupbox" and not ParentObj.IsTab then
                         ParentObj:Resize()
                     end
                 end
@@ -11837,7 +11838,7 @@ function Library:CreateWindow(WindowInfo)
                     if Tabbox.ActiveTab then
                         Tabbox.ActiveTab:Resize()
                     end
-                    if ParentObj.Type == "Groupbox" then
+                    if ParentObj.Type == "Groupbox" and not ParentObj.IsTab then
                         ParentObj:Resize()
                     end
                 end,
