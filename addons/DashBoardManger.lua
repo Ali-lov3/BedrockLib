@@ -7,8 +7,6 @@ local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 
 local DashboardManager = {
     Library = nil,
-    ThemeManager = nil,
-    SaveManager = nil,
     AppliedTabs = {},
 }
 
@@ -20,16 +18,12 @@ local function copySettings(info)
         Order = 1,
         ProfileName = "Profile",
         ProfileIcon = "user-round",
-        AccountName = "Account details",
+        AccountName = "Account overview",
         AccountIcon = "id-card",
         AvatarType = "AvatarHeadShot",
         AvatarWidth = 420,
         AvatarHeight = 420,
-        AvatarImageHeight = 220,
-        IncludeTheme = true,
-        IncludeConfig = true,
-        ThemeIcon = "paintbrush",
-        ConfigIcon = "folder-cog",
+        AvatarImageHeight = 190,
         Show = true,
     }
 
@@ -94,16 +88,6 @@ function DashboardManager:SetLibrary(library)
     return self
 end
 
-function DashboardManager:SetThemeManager(themeManager)
-    self.ThemeManager = themeManager
-    return self
-end
-
-function DashboardManager:SetSaveManager(saveManager)
-    self.SaveManager = saveManager
-    return self
-end
-
 function DashboardManager:ApplyDashBoard(target, info)
     assert(self.Library, "Library is not set, call DashboardManager:SetLibrary(Library) first.")
 
@@ -133,28 +117,75 @@ function DashboardManager:ApplyDashBoard(target, info)
         ScaleType = Enum.ScaleType.Fit,
     })
 
-    local username = profile:AddLabel({
-        Text = "Username: " .. player.Name,
-        Size = 15,
+    local welcome = profile:AddLabel({
+        Text = "WELCOME BACK",
+        Size = 13,
     })
 
     local displayName = profile:AddLabel({
-        Text = "Display Name: " .. player.DisplayName,
-        Size = 15,
+        Text = player.DisplayName,
+        Size = 20,
     })
 
-    local userId = account:AddLabel({
-        Text = "User ID: " .. tostring(player.UserId),
+    local username = profile:AddLabel({
+        Text = "@" .. player.Name,
+        Size = 14,
+    })
+
+    profile:AddDivider({
+        Text = "PROFILE",
+        MarginTop = 4,
+        MarginBottom = 4,
+    })
+
+    local profileDescription = profile:AddLabel({
+        Text = "Your personal command center",
+        DoesWrap = true,
+        Size = 14,
+    })
+
+    local accountHeader = account:AddLabel({
+        Text = "ACCOUNT OVERVIEW",
+        Size = 16,
+    })
+
+    account:AddDivider({
+        Text = "IDENTITY",
+        MarginTop = 4,
+        MarginBottom = 4,
+    })
+
+    local accountDisplayName = account:AddLabel({
+        Text = "Display Name\n" .. player.DisplayName,
+        DoesWrap = true,
         Size = 15,
     })
 
     local accountUsername = account:AddLabel({
-        Text = "Username: " .. player.Name,
+        Text = "Username\n@" .. player.Name,
+        DoesWrap = true,
         Size = 15,
     })
 
-    local accountDisplayName = account:AddLabel({
-        Text = "Display Name: " .. player.DisplayName,
+    account:AddDivider({
+        Text = "PLAYER ID",
+        MarginTop = 4,
+        MarginBottom = 4,
+    })
+
+    local userId = account:AddLabel({
+        Text = tostring(player.UserId),
+        Size = 18,
+    })
+
+    account:AddDivider({
+        Text = "STATUS",
+        MarginTop = 4,
+        MarginBottom = 4,
+    })
+
+    local status = account:AddLabel({
+        Text = "Online",
         Size = 15,
     })
 
@@ -165,20 +196,16 @@ function DashboardManager:ApplyDashBoard(target, info)
         Profile = profile,
         Account = account,
         Avatar = avatar,
+        Welcome = welcome,
         Username = username,
         DisplayName = displayName,
+        ProfileDescription = profileDescription,
         UserId = userId,
         AccountUsername = accountUsername,
         AccountDisplayName = accountDisplayName,
+        AccountHeader = accountHeader,
+        Status = status,
     }
-
-    if settings.IncludeTheme and self.ThemeManager then
-        dashboard.Theme = self.ThemeManager:ApplyToTab(tab, settings.ThemeIcon)
-    end
-
-    if settings.IncludeConfig and self.SaveManager then
-        dashboard.Config = self.SaveManager:BuildConfigSection(tab, settings.ConfigIcon)
-    end
 
     self.AppliedTabs[tab] = dashboard
 
@@ -196,4 +223,3 @@ end
 getgenv().ObsidianDashboardManager = DashboardManager
 
 return DashboardManager
-
