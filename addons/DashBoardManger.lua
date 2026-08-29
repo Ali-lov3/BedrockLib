@@ -18,7 +18,7 @@ local function copySettings(info)
         Order = 1,
         ProfileName = "Profile",
         ProfileIcon = "user-round",
-        AccountName = "Account overview",
+        AccountName = "Account",
         AccountIcon = "id-card",
         AvatarType = "AvatarHeadShot",
         AvatarWidth = 420,
@@ -117,11 +117,6 @@ function DashboardManager:ApplyDashBoard(target, info)
         ScaleType = Enum.ScaleType.Fit,
     })
 
-    local welcome = profile:AddLabel({
-        Text = "WELCOME BACK",
-        Size = 13,
-    })
-
     local displayName = profile:AddLabel({
         Text = player.DisplayName,
         Size = 20,
@@ -132,61 +127,25 @@ function DashboardManager:ApplyDashBoard(target, info)
         Size = 14,
     })
 
-    profile:AddDivider({
-        Text = "PROFILE",
-        MarginTop = 4,
-        MarginBottom = 4,
-    })
-
-    local profileDescription = profile:AddLabel({
-        Text = "Your personal command center",
-        DoesWrap = true,
+    local accountDisplayName = account:AddLabel({
+        Text = "Display name: " .. player.DisplayName,
         Size = 14,
     })
 
-    local accountHeader = account:AddLabel({
-        Text = "ACCOUNT OVERVIEW",
-        Size = 16,
-    })
-
-    account:AddDivider({
-        Text = "IDENTITY",
-        MarginTop = 4,
-        MarginBottom = 4,
-    })
-
-    local accountDisplayName = account:AddLabel({
-        Text = "Display Name\n" .. player.DisplayName,
-        DoesWrap = true,
-        Size = 15,
-    })
-
     local accountUsername = account:AddLabel({
-        Text = "Username\n@" .. player.Name,
-        DoesWrap = true,
-        Size = 15,
+        Text = "Username: @" .. player.Name,
+        Size = 14,
     })
 
     account:AddDivider({
-        Text = "PLAYER ID",
+        Text = "Details",
         MarginTop = 4,
         MarginBottom = 4,
     })
 
     local userId = account:AddLabel({
-        Text = tostring(player.UserId),
-        Size = 18,
-    })
-
-    account:AddDivider({
-        Text = "STATUS",
-        MarginTop = 4,
-        MarginBottom = 4,
-    })
-
-    local status = account:AddLabel({
-        Text = "Online",
-        Size = 15,
+        Text = "User ID: " .. tostring(player.UserId),
+        Size = 14,
     })
 
     local dashboard = {
@@ -196,15 +155,11 @@ function DashboardManager:ApplyDashBoard(target, info)
         Profile = profile,
         Account = account,
         Avatar = avatar,
-        Welcome = welcome,
         Username = username,
         DisplayName = displayName,
-        ProfileDescription = profileDescription,
         UserId = userId,
         AccountUsername = accountUsername,
         AccountDisplayName = accountDisplayName,
-        AccountHeader = accountHeader,
-        Status = status,
     }
 
     self.AppliedTabs[tab] = dashboard
