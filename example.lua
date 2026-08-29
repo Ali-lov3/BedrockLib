@@ -30,6 +30,7 @@ local Window = Library:CreateWindow({
 	Title = "mspaint",
 	Footer = "version: example",
 	Icon = 95816097006870,
+	Font = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 	ThemeSet = ThemeSet,
 	SetCornerRadius = SetCornerRadius,
 	NotifySide = "Right",
