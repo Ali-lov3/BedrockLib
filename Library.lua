@@ -12444,6 +12444,10 @@ function Library:CreateWindow(WindowInfo)
         end)
         TabButton.MouseButton1Click:Connect(Tab.Show)
 
+        if IsNormal then
+            setmetatable(Tab, BaseGroupbox)
+        end
+
         Library.Tabs[Name] = Tab
 
         return Tab
