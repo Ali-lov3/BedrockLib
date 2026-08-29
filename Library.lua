@@ -447,6 +447,9 @@ local Templates = {
         DisableCollapsing = false,
         PopOut = true,
     },
+    Tab = {
+        Type = "Groupbox",
+    },
     Tabbox = {
         Side = 1,
         Name = nil,
@@ -1050,6 +1053,55 @@ local function ApplySearchToTab(Tab, Search)
 
     --// If the Tab itself matches Search (by name/description), don't filter out its contents -- pull everything in the Tab along with it \\--
     local TabMatches = TryFuzzyMatch(Tab.Name, Search) or TryFuzzyMatch(Tab.Description, Search)
+
+    if Tab.Type == "Normal" then
+        local VisibleElements = 0
+
+        for _, ElementInfo in Tab.Elements do
+            if ElementInfo.Type == "Divider" then
+                ElementInfo.Holder.Visible = false
+                continue
+            elseif ElementInfo.SubButton then
+                local Visible = false
+                if MatchesSearch(ElementInfo, Search, TabMatches) and ElementInfo.Visible then
+                    Visible = true
+                else
+                    ElementInfo.Base.Visible = false
+                end
+
+                if MatchesSearch(ElementInfo.SubButton, Search, TabMatches) and ElementInfo.SubButton.Visible then
+                    Visible = true
+                else
+                    ElementInfo.SubButton.Base.Visible = false
+                end
+
+                ElementInfo.Holder.Visible = Visible
+                if Visible then
+                    VisibleElements += 1
+                end
+
+                continue
+            end
+
+            if ElementInfo.Text and MatchesSearch(ElementInfo, Search, TabMatches) and ElementInfo.Visible then
+                ElementInfo.Holder.Visible = true
+                VisibleElements += 1
+            else
+                ElementInfo.Holder.Visible = false
+            end
+        end
+
+        for _, Depbox in Tab.DependencyBoxes do
+            if not Depbox.Visible then
+                continue
+            end
+
+            VisibleElements += CheckDepbox(Depbox, Search, TabMatches)
+        end
+
+        return VisibleElements > 0
+    end
+
     for _, Groupbox in Tab.Groupboxes do
         if Groupbox.Visible == false then
             continue
@@ -1190,6 +1242,27 @@ local function ApplySearchToTab(Tab, Search)
 end
 local function ResetTab(Tab)
     if not Tab then
+        return
+    end
+
+    if Tab.Type == "Normal" then
+        for _, ElementInfo in Tab.Elements do
+            ElementInfo.Holder.Visible = ElementInfo.Visible ~= false
+
+            if ElementInfo.SubButton then
+                ElementInfo.Base.Visible = ElementInfo.Visible
+                ElementInfo.SubButton.Base.Visible = ElementInfo.SubButton.Visible
+            end
+        end
+
+        for _, Depbox in Tab.DependencyBoxes do
+            if not Depbox.Visible then
+                continue
+            end
+
+            RestoreDepbox(Depbox)
+        end
+
         return
     end
 
@@ -9631,6 +9704,9 @@ do
 
     function Funcs:AddDependencyGroupbox()
         if self.Destroyed then return nil end
+        if self.Type == "Normal" then
+            error("Normal tabs cannot contain dependency groupboxes")
+        end
 
         local Groupbox = self
         local Tab = Groupbox.Tab
@@ -11039,19 +11115,32 @@ function Library:CreateWindow(WindowInfo)
         local Icon = nil
         local Description = nil
         local Order = nil
+        local Type = "Groupbox"
 
         if select("#", ...) == 1 and typeof(...) == "table" then
-            local Info = select(1, ...)
+            local Info = Library:Validate(select(1, ...), Templates.Tab)
             Name = Info.Name or "Tab"
             Icon = Info.Icon
             Description = Info.Description
             Order = Info.Order
+            Type = Info.Type
         else
             Name = select(1, ...)
             Icon = select(2, ...)
             Description = select(3, ...)
             Order = select(4, ...)
         end
+
+        if typeof(Type) ~= "string" then
+            error("Invalid tab type: expected Groupbox or Normal")
+        end
+
+        Type = string.lower(Type)
+        if Type ~= "groupbox" and Type ~= "normal" then
+            error(string.format("Invalid tab type: %s", Type))
+        end
+
+        local IsNormal = Type == "normal"
 
         if not tonumber(Order) then
             Order = #Tabs:GetChildren()
@@ -11113,81 +11202,104 @@ function Library:CreateWindow(WindowInfo)
                 Icon = TabIcon,
             })
 
-            --// Tab Container \\--
-            TabContainer = New("Frame", {
-                BackgroundTransparency = 1,
-                Position = UDim2.fromScale(0, 0),
-                Size = UDim2.fromScale(1, 1),
-                Visible = false,
-                Parent = Container,
-            })
-
-            TabLeft = New("ScrollingFrame", {
-                AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                CanvasSize = UDim2.fromScale(0, 0),
-                ScrollBarImageTransparency = 1,
-                ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, -3, 1, 0),
-                Parent = TabContainer,
-            })
-            New("UIListLayout", {
-                Padding = UDim.new(0, 2),
-                Parent = TabLeft,
-            })
-            New("UIPadding", {
-                PaddingBottom = UDim.new(0, 2),
-                PaddingLeft = UDim.new(0, 2),
-                PaddingRight = UDim.new(0, 2),
-                PaddingTop = UDim.new(0, 2),
-                Parent = TabLeft,
-            })
-            do
-                New("Frame", {
+            if IsNormal then
+                TabContainer = New("ScrollingFrame", {
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
-                    LayoutOrder = -1,
+                    CanvasSize = UDim2.fromScale(0, 0),
+                    ScrollBarThickness = 0,
+                    Position = UDim2.fromScale(0, 0),
+                    Size = UDim2.fromScale(1, 1),
+                    Visible = false,
+                    Parent = Container,
+                })
+                New("UIListLayout", {
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    Padding = UDim.new(0, 8),
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Parent = TabContainer,
+                })
+                New("UIPadding", {
+                    PaddingLeft = UDim.new(0, 1),
+                    PaddingRight = UDim.new(0, 1),
+                    Parent = TabContainer,
+                })
+            else
+                TabContainer = New("Frame", {
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromScale(0, 0),
+                    Size = UDim2.fromScale(1, 1),
+                    Visible = false,
+                    Parent = Container,
+                })
+
+                TabLeft = New("ScrollingFrame", {
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                    BackgroundTransparency = 1,
+                    CanvasSize = UDim2.fromScale(0, 0),
+                    ScrollBarImageTransparency = 1,
+                    ScrollBarThickness = 0,
+                    Size = UDim2.new(0.5, -3, 1, 0),
+                    Parent = TabContainer,
+                })
+                New("UIListLayout", {
+                    Padding = UDim.new(0, 2),
                     Parent = TabLeft,
                 })
-                New("Frame", {
-                    BackgroundTransparency = 1,
-                    LayoutOrder = 1,
+                New("UIPadding", {
+                    PaddingBottom = UDim.new(0, 2),
+                    PaddingLeft = UDim.new(0, 2),
+                    PaddingRight = UDim.new(0, 2),
+                    PaddingTop = UDim.new(0, 2),
                     Parent = TabLeft,
                 })
-            end
+                do
+                    New("Frame", {
+                        BackgroundTransparency = 1,
+                        LayoutOrder = -1,
+                        Parent = TabLeft,
+                    })
+                    New("Frame", {
+                        BackgroundTransparency = 1,
+                        LayoutOrder = 1,
+                        Parent = TabLeft,
+                    })
+                end
 
-            TabRight = New("ScrollingFrame", {
-                AnchorPoint = Vector2.new(1, 0),
-                AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                CanvasSize = UDim2.fromScale(0, 0),
-                Position = UDim2.fromScale(1, 0),
-                ScrollBarImageTransparency = 1,
-                ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, -3, 1, 0),
-                Parent = TabContainer,
-            })
-            New("UIListLayout", {
-                Padding = UDim.new(0, 2),
-                Parent = TabRight,
-            })
-            New("UIPadding", {
-                PaddingBottom = UDim.new(0, 2),
-                PaddingLeft = UDim.new(0, 2),
-                PaddingRight = UDim.new(0, 2),
-                PaddingTop = UDim.new(0, 2),
-                Parent = TabRight,
-            })
-            do
-                New("Frame", {
+                TabRight = New("ScrollingFrame", {
+                    AnchorPoint = Vector2.new(1, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
-                    LayoutOrder = -1,
+                    CanvasSize = UDim2.fromScale(0, 0),
+                    Position = UDim2.fromScale(1, 0),
+                    ScrollBarImageTransparency = 1,
+                    ScrollBarThickness = 0,
+                    Size = UDim2.new(0.5, -3, 1, 0),
+                    Parent = TabContainer,
+                })
+                New("UIListLayout", {
+                    Padding = UDim.new(0, 2),
                     Parent = TabRight,
                 })
-                New("Frame", {
-                    BackgroundTransparency = 1,
-                    LayoutOrder = 1,
+                New("UIPadding", {
+                    PaddingBottom = UDim.new(0, 2),
+                    PaddingLeft = UDim.new(0, 2),
+                    PaddingRight = UDim.new(0, 2),
+                    PaddingTop = UDim.new(0, 2),
                     Parent = TabRight,
                 })
+                do
+                    New("Frame", {
+                        BackgroundTransparency = 1,
+                        LayoutOrder = -1,
+                        Parent = TabRight,
+                    })
+                    New("Frame", {
+                        BackgroundTransparency = 1,
+                        LayoutOrder = 1,
+                        Parent = TabRight,
+                    })
+                end
             end
         end
 
@@ -11195,6 +11307,7 @@ function Library:CreateWindow(WindowInfo)
         local Tab = {
             Name = Name,
             Description = Description,
+            Type = if IsNormal then "Normal" else "Groupbox",
 
             Connections = {},
             Destroyed = false,
@@ -11202,7 +11315,7 @@ function Library:CreateWindow(WindowInfo)
             Window = Window,
             Button = TabButton,
             Container = TabContainer,
-            Sides = {
+            Sides = IsNormal and {} or {
                 TabLeft,
                 TabRight,
             },
@@ -11214,8 +11327,10 @@ function Library:CreateWindow(WindowInfo)
                 Text = "",
             },
 
+            Elements = {},
             Groupboxes = {},
             Tabboxes = {},
+            DependencyBoxes = {},
             DependencyGroupboxes = {},
         }
 
@@ -11395,6 +11510,10 @@ function Library:CreateWindow(WindowInfo)
         end
 
         local function AddTabbox(self, Info)
+            if self.Type == "Normal" then
+                error("Normal tabs cannot contain tabboxes")
+            end
+
             Info = Library:Validate(Info, Templates.Tabbox)
             local ParentObj = self
 
@@ -11774,6 +11893,10 @@ function Library:CreateWindow(WindowInfo)
         end
 
         function Tab:AddGroupbox(Info)
+            if Tab.Type == "Normal" then
+                error("Normal tabs cannot contain groupboxes")
+            end
+
             Info = Library:Validate(Info, Templates.Groupbox)
 
             if typeof(Info.Side) == "string" then

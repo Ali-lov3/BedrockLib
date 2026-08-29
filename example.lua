@@ -46,7 +46,16 @@ local Window = Library:CreateWindow({
 -- You can find more icons in https://lucide.dev/
 local Tabs = {
 	-- Creates a new tab titled Main
-	Main = Window:AddTab("Main", "user"),
+Main = Window:AddTab({
+Name = "Main",
+Icon = "user",
+Type = "Groupbox",
+}),
+Example = Window:AddTab({
+Name = "Example",
+Icon = "layout-dashboard",
+Type = "Normal",
+}),
 	Key = Window:AddKeyTab("Key System"),
 	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
 }
@@ -59,6 +68,11 @@ local Dashboard = DashboardManager:ApplyDashboard(Window, {
 	Order = 1,
 })
 
+Tabs.Example:AddLabel("This is a normal tab.")
+Tabs.Example:AddToggle("NormalTabToggle", {
+Text = "Normal tab toggle",
+Default = false,
+})
 
 --[[
 Example of how to add a warning box to a tab; the title AND text support rich text formatting.
