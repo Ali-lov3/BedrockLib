@@ -70,6 +70,18 @@ local LeftGroupBox = Tabs.Main:AddGroupbox({
 	-- DisableCollapsing = false,
 })
 
+LeftGroupBox:AddButton({
+	Text = "Notify Button",
+	Func = function()
+		Library:Notify({
+			Title = "BedrockLib",
+			Description = "Notification shown",
+			Time = 1.2,
+			BigIcon = "bell",
+		})
+	end,
+})
+
 -- We can also get our Main tab via the following code:
 -- local LeftGroupBox = Window.Tabs.Main:AddLeftGroupbox("Groupbox", "boxes")
 

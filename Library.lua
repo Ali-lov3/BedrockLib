@@ -1694,8 +1694,8 @@ do
     NotificationArea = New("Frame", {
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
-        Position = UDim2.new(1, -6, 0, 6),
-        Size = UDim2.new(0, 300, 1, -6),
+        Position = UDim2.new(1, -10, 0, 10),
+        Size = UDim2.new(0, 300, 1, -10),
         ZIndex = 200,
         Parent = ScreenGui,
     })
@@ -9831,10 +9831,10 @@ function Library:SetNotifySide(Side: string)
     local IsLeft = Side:lower() == "left"
     if IsLeft then
         NotificationArea.AnchorPoint = Vector2.new(0, 0)
-        NotificationArea.Position = UDim2.fromOffset(6, 6)
+        NotificationArea.Position = UDim2.fromOffset(10, 10)
     else
         NotificationArea.AnchorPoint = Vector2.new(1, 0)
-        NotificationArea.Position = UDim2.new(1, -6, 0, 6)
+        NotificationArea.Position = UDim2.new(1, -10, 0, 10)
     end
 
     for FakeBackground in Library.Notifications do
@@ -9902,8 +9902,9 @@ function Library:Notify(...)
     local Holder = New("Frame", {
         AutomaticSize = Enum.AutomaticSize.Y,
         BackgroundColor3 = "MainColor",
-        Position = Library.NotifySide:lower() == "left" and UDim2.new(-1, -8, 0, -2) or UDim2.new(1, 8, 0, -2),
+        Position = Library.NotifySide:lower() == "left" and UDim2.new(-1, -12, 0, -2) or UDim2.new(1, 12, 0, -2),
         Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 0.02,
         ZIndex = 5,
         Parent = FakeBackground,
     })
@@ -9927,10 +9928,10 @@ function Library:Notify(...)
         Parent = ContentHolder,
     })
     New("UIPadding", {
-        PaddingBottom = UDim.new(0, 8),
-        PaddingLeft = UDim.new(0, 8),
-        PaddingRight = UDim.new(0, 8),
-        PaddingTop = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 12),
+        PaddingRight = UDim.new(0, 12),
+        PaddingTop = UDim.new(0, 10),
         Parent = ContentHolder,
     })
 
@@ -9944,7 +9945,7 @@ function Library:Notify(...)
             ImageRectOffset = CloseIcon and CloseIcon.ImageRectOffset or Vector2.zero,
             ImageRectSize = CloseIcon and CloseIcon.ImageRectSize or Vector2.zero,
             ImageTransparency = 0.5,
-            Position = UDim2.new(1, -8, 0, 8),
+            Position = UDim2.new(1, -10, 0, 10),
             Size = UDim2.fromOffset(14, 14),
             ZIndex = 6,
             Parent = Holder,
@@ -9963,6 +9964,24 @@ function Library:Notify(...)
         CloseButton.MouseButton1Click:Connect(function()
             Data:Destroy("user")
         end)
+    end
+
+    local TimeLabel
+    if typeof(Data.Time) == "number" and Data.Persist ~= true then
+        TimeLabel = New("TextLabel", {
+            AnchorPoint = Vector2.new(1, 0),
+            BackgroundTransparency = 1,
+            Position = UDim2.new(1, Data.Closable and -30 or -10, 0, 10),
+            Size = UDim2.fromOffset(42, 16),
+            Text = string.format("%.1fs", math.max(0, Data.Time)),
+            TextColor3 = "FontColor",
+            TextSize = 13,
+            TextTransparency = 0.3,
+            TextXAlignment = Enum.TextXAlignment.Right,
+            TextYAlignment = Enum.TextYAlignment.Center,
+            ZIndex = 6,
+            Parent = Holder,
+        })
     end
 
     local ContentContainer = New("Frame", {
@@ -10047,7 +10066,7 @@ function Library:Notify(...)
             Size = UDim2.fromScale(0, 0),
             Text = Data.Title,
             TextColor3 = Data.TitleColor or "FontColor",
-            TextSize = 15,
+            TextSize = 16,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
             TextWrapped = true,
@@ -10063,6 +10082,7 @@ function Library:Notify(...)
             Text = Data.Description,
             TextColor3 = Data.DescriptionColor or "FontColor",
             TextSize = 14,
+            TextTransparency = 0.28,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextWrapped = true,
             Parent = TextContainer,
@@ -10073,10 +10093,11 @@ function Library:Notify(...)
         local ExtraWidth = BigIconLabel and 32 or 0
         local IconWidth = IconLabel and 21 or 0
         local CloseWidth = Data.Closable and 20 or 0
+        local TimeWidth = TimeLabel and 48 or 0
 
         if Title then
             local X, Y =
-                Library:GetTextBounds(Title.Text, Title.FontFace, Title.TextSize, (NotificationArea.AbsoluteSize.X / Library.DPIScale) - 24 - ExtraWidth - IconWidth - CloseWidth)
+                Library:GetTextBounds(Title.Text, Title.FontFace, Title.TextSize, (NotificationArea.AbsoluteSize.X / Library.DPIScale) - 24 - ExtraWidth - IconWidth - CloseWidth - TimeWidth)
             Title.Size = UDim2.fromOffset(X, Y)
             TitleX = X + IconWidth
             TitleContainer.Size = UDim2.fromOffset(TitleX, math.max(Y, IconLabel and 16 or 0))
@@ -10150,7 +10171,7 @@ function Library:Notify(...)
 
         TweenService
             :Create(Holder, Library.NotifyTweenInfo, {
-                Position = Library.NotifySide:lower() == "left" and UDim2.new(-1, -8, 0, -2) or UDim2.new(1, 8, 0, -2),
+                Position = Library.NotifySide:lower() == "left" and UDim2.new(-1, -12, 0, -2) or UDim2.new(1, 12, 0, -2),
             })
             :Play()
 
@@ -10173,12 +10194,13 @@ function Library:Notify(...)
         BorderColor3 = "OutlineColor",
         BorderSizePixel = 1,
         Position = UDim2.fromOffset(0, 3),
-        Size = UDim2.new(1, 0, 0, 2),
+        Size = UDim2.new(1, 0, 0, 4),
         Parent = TimerHolder,
     })
     TimerFill = New("Frame", {
         BackgroundColor3 = "AccentColor",
         Size = UDim2.fromScale(1, 1),
+        ZIndex = 2,
         Parent = TimerBar,
     })
 
