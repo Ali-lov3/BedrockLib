@@ -393,6 +393,9 @@ local Templates = {
         GlobalSearch = false,
 
         CornerRadius = 4,
+        SetCornerRadius = nil,
+        SetConorRadius = nil,
+        ThemeSet = nil,
         NotifySide = "Right",
         ShowCustomCursor = true,
 
@@ -10279,7 +10282,12 @@ function Library:CreateWindow(WindowInfo)
     if typeof(WindowInfo.Font) == "EnumItem" then
         WindowInfo.Font = Font.fromEnum(WindowInfo.Font :: any)
     end
-    WindowInfo.CornerRadius = math.min(WindowInfo.CornerRadius, 20)
+    local RequestedCornerRadius = WindowInfo.SetCornerRadius or WindowInfo.SetConorRadius or WindowInfo.CornerRadius
+    if typeof(RequestedCornerRadius) == "string" then
+        local Percentage = tonumber(RequestedCornerRadius:match("^%s*([%d%.]+)%%%s*$"))
+        RequestedCornerRadius = Percentage and Percentage / 5 or tonumber(RequestedCornerRadius)
+    end
+    WindowInfo.CornerRadius = math.clamp(tonumber(RequestedCornerRadius) or 4, 0, 20)
 
     --// Old Naming \\--
     if WindowInfo.Compact ~= nil then
@@ -13346,6 +13354,14 @@ function Library:CreateWindow(WindowInfo)
                 end
             end
         end))
+    end
+
+    if WindowInfo.ThemeSet then
+        local ThemeManager = getgenv().ObsidianThemeManager
+        if ThemeManager and type(ThemeManager.SetLibrary) == "function" and type(ThemeManager.ApplyTheme) == "function" then
+            ThemeManager:SetLibrary(Library)
+            ThemeManager:ApplyTheme(WindowInfo.ThemeSet)
+        end
     end
 
     Window:SetAlwaysOnTop(WindowInfo.AlwaysOnTop)

@@ -6,9 +6,12 @@ local repo = "https://raw.githubusercontent.com/Ali-lov3/BedrockLib/refs/heads/m
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+local DashboardManager = loadstring(game:HttpGet(repo .. "addons/DashBoardManger.lua"))()
 
 local Options = Library.Options
 local Toggles = Library.Toggles
+local ThemeSet = "Default"
+local SetCornerRadius = "100%"
 
 Library.ForceCheckbox = false -- Forces AddToggle to AddCheckbox
 Library.ShowToggleFrameInKeybinds = true -- Make toggle keybinds work inside the keybinds UI (aka adds a toggle to the UI). Good for mobile users (Default value = true)
@@ -27,6 +30,8 @@ local Window = Library:CreateWindow({
 	Title = "mspaint",
 	Footer = "version: example",
 	Icon = 95816097006870,
+	ThemeSet = ThemeSet,
+	SetCornerRadius = SetCornerRadius,
 	NotifySide = "Right",
 	ShowCustomCursor = true,
 })
@@ -44,6 +49,14 @@ local Tabs = {
 	Key = Window:AddKeyTab("Key System"),
 	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
 }
+
+DashboardManager:SetLibrary(Library)
+local Dashboard = DashboardManager:ApplyDashboard(Window, {
+	Name = "Dashboard",
+	Icon = "layout-dashboard",
+	Description = "Your Roblox profile",
+	Order = 1,
+})
 
 
 --[[
@@ -834,6 +847,9 @@ SaveManager:BuildConfigSection(Tabs["UI Settings"])
 -- Builds our theme menu (with plenty of built in themes) on the left side
 -- NOTE: you can also call ThemeManager:ApplyToGroupbox to add it to a specific groupbox
 ThemeManager:ApplyToTab(Tabs["UI Settings"])
+if ThemeSet and ThemeSet ~= "" then
+	ThemeManager:ApplyTheme(ThemeSet)
+end
 
 -- You can use the SaveManager:LoadAutoloadConfig() to load a config
 -- which has been marked to be one that auto loads!
