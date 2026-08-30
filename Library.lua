@@ -12230,7 +12230,7 @@ function Library:CreateWindow(WindowInfo)
             do
                 local DragGhost
                 local Dragging = false
-                local InputBegan, InputChanged, InputEnded
+                local InputBegan
 
                 local function GetTargetSide(InputPos: Vector2)
                     local LeftAbs = TabLeft.AbsolutePosition
@@ -12254,16 +12254,6 @@ function Library:CreateWindow(WindowInfo)
                     if DragGhost then
                         DragGhost:Destroy()
                         DragGhost = nil
-                    end
-
-                    if InputChanged and InputChanged.Connected then
-                        InputChanged:Disconnect()
-                        InputChanged = nil
-                    end
-
-                    if InputEnded and InputEnded.Connected then
-                        InputEnded:Disconnect()
-                        InputEnded = nil
                     end
                 end
 
@@ -12301,39 +12291,35 @@ function Library:CreateWindow(WindowInfo)
                         if TargetSide ~= Groupbox.Side then
                             Groupbox.Side = TargetSide
                             BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
+                            Groupbox:Resize()
                         end
                     end
 
-                    InputChanged = UserInputService.InputChanged:Connect(function(ChangedInput: InputObject)
+                    local Heartbeat
+                    Heartbeat = RunService.Heartbeat:Connect(function()
                         if not Dragging then
+                            if Heartbeat and Heartbeat.Connected then
+                                Heartbeat:Disconnect()
+                            end
                             return
                         end
 
-                        if ChangedInput.UserInputType == Enum.UserInputType.MouseMovement or ChangedInput.UserInputType == Enum.UserInputType.Touch then
-                            local MousePos = UserInputService:GetMouseLocation()
-                            if DragGhost then
-                                DragGhost.Position = UDim2.fromOffset(
-                                    MousePos.X - DragGhost.AbsoluteSize.X / 2,
-                                    MousePos.Y - DragGhost.AbsoluteSize.Y / 2
-                                )
-                            end
+                        local MousePos = UserInputService:GetMouseLocation()
+                        if DragGhost then
+                            DragGhost.Position = UDim2.fromOffset(
+                                MousePos.X - DragGhost.AbsoluteSize.X / 2,
+                                MousePos.Y - DragGhost.AbsoluteSize.Y / 2
+                            )
                         end
-                    end)
 
-                    InputEnded = UserInputService.InputEnded:Connect(function(EndedInput: InputObject)
-                        if EndedInput.UserInputType == Enum.UserInputType.MouseButton1
-                            or EndedInput.UserInputType == Enum.UserInputType.Touch then
-                            FinishDrag()
-                        end
-                    end)
+                        local StillHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+                            or UserInputService:GetTouchCount() > 0
 
-                    local ChangedFallback
-                    ChangedFallback = Input.Changed:Connect(function()
-                        if Input.UserInputState == Enum.UserInputState.End or Input.UserInputState == Enum.UserInputState.Cancel then
-                            FinishDrag()
-                            if ChangedFallback and ChangedFallback.Connected then
-                                ChangedFallback:Disconnect()
+                        if not StillHeld then
+                            if Heartbeat and Heartbeat.Connected then
+                                Heartbeat:Disconnect()
                             end
+                            FinishDrag()
                         end
                     end)
                 end)
