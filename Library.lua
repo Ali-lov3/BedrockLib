@@ -11069,6 +11069,7 @@ function Library:CreateWindow(WindowInfo)
         local TabLabel
         local TabIcon
         local ActiveIndicator
+        local ActiveIndicatorTween
 
         local TabContainer
         local TabLeft
@@ -12241,6 +12242,14 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundTransparency = 0,
             }):Play()
             ActiveIndicator.Visible = true
+            if ActiveIndicatorTween then
+                StopTween(ActiveIndicatorTween, true)
+            end
+            ActiveIndicator.Size = UDim2.fromOffset(3, 0)
+            ActiveIndicatorTween = TweenService:Create(ActiveIndicator, Library.TweenInfo, {
+                Size = UDim2.fromOffset(3, 20),
+            })
+            ActiveIndicatorTween:Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
             }):Play()
@@ -12268,7 +12277,12 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 1,
             }):Play()
+            if ActiveIndicatorTween then
+                StopTween(ActiveIndicatorTween, true)
+                ActiveIndicatorTween = nil
+            end
             ActiveIndicator.Visible = false
+            ActiveIndicator.Size = UDim2.fromOffset(3, 20)
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0.5,
