@@ -10369,6 +10369,7 @@ function Library:CreateWindow(WindowInfo)
         local GradientBackground = New("Frame", {
             BackgroundColor3 = Color3.new(1, 1, 1),
             BackgroundTransparency = 0.08,
+            ClipsDescendants = true,
             Size = UDim2.fromScale(1, 1),
             ZIndex = 0,
             Parent = MainFrame,
@@ -10382,6 +10383,13 @@ function Library:CreateWindow(WindowInfo)
             Rotation = 28,
             Parent = GradientBackground,
         })
+        table.insert(
+            Library.Corners,
+            New("UICorner", {
+                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                Parent = GradientBackground,
+            })
+        )
         table.insert(
             Library.Corners,
             New("UICorner", {
