@@ -11458,6 +11458,7 @@ function Library:CreateWindow(WindowInfo)
 
             local TabboxHolder
             local TabboxButtons
+            local TabboxOutline
 
             do
                 TabboxHolder = New("Frame", {
@@ -11473,7 +11474,7 @@ function Library:CreateWindow(WindowInfo)
                         Parent = TabboxHolder,
                     })
                 )
-                Library:AddOutline(TabboxHolder)
+                TabboxOutline = Library:AddOutline(TabboxHolder)
 
                 TabboxButtons = New("Frame", {
                     BackgroundTransparency = 1,
@@ -11506,6 +11507,16 @@ function Library:CreateWindow(WindowInfo)
 
                 ParentBox = if ParentObj.Type == "Groupbox" then ParentObj else nil,
             }
+            table.insert(Tabbox.Connections, TabboxHolder.MouseEnter:Connect(function()
+                TweenService:Create(TabboxOutline, Library.TweenInfo, {
+                    Color = Library.Scheme.AccentColor,
+                }):Play()
+            end))
+            table.insert(Tabbox.Connections, TabboxHolder.MouseLeave:Connect(function()
+                TweenService:Create(TabboxOutline, Library.TweenInfo, {
+                    Color = Library.Scheme.OutlineColor,
+                }):Play()
+            end))
 
             function Tabbox:UpdateCorners()
                 for _, Tab in Tabbox.Tabs do
@@ -11846,6 +11857,7 @@ function Library:CreateWindow(WindowInfo)
 
             local GroupboxCollapseArrow
             local GroupboxLine
+            local GroupboxOutline
 
             do
                 GroupboxHolder = New("Frame", {
@@ -11864,7 +11876,7 @@ function Library:CreateWindow(WindowInfo)
                 New("UIListLayout", {
                     Parent = GroupboxHolder,
                 })
-                Library:AddOutline(GroupboxHolder)
+                GroupboxOutline = Library:AddOutline(GroupboxHolder)
 
                 GroupboxTop = New("Frame", {
                     AutomaticSize = Enum.AutomaticSize.Y,
@@ -12001,6 +12013,16 @@ function Library:CreateWindow(WindowInfo)
                 DependencyBoxes = {},
                 Elements = {}
             }
+            table.insert(Groupbox.Connections, GroupboxHolder.MouseEnter:Connect(function()
+                TweenService:Create(GroupboxOutline, Library.TweenInfo, {
+                    Color = Library.Scheme.AccentColor,
+                }):Play()
+            end))
+            table.insert(Groupbox.Connections, GroupboxHolder.MouseLeave:Connect(function()
+                TweenService:Create(GroupboxOutline, Library.TweenInfo, {
+                    Color = Library.Scheme.OutlineColor,
+                }):Play()
+            end))
 
             local ResizeTween
             local CollapseArrowTween
