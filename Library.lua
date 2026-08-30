@@ -12278,9 +12278,25 @@ function Library:CreateWindow(WindowInfo)
                         Parent = DragGhost,
                     })
 
+                    local HeldInputType = Input.UserInputType
+                    local TouchReleased = false
+
+                    local TouchEndConn
+                    if HeldInputType == Enum.UserInputType.Touch then
+                        TouchEndConn = UserInputService.InputEnded:Connect(function(EndedInput: InputObject)
+                            if EndedInput.UserInputType == Enum.UserInputType.Touch then
+                                TouchReleased = true
+                            end
+                        end)
+                    end
+
                     local function FinishDrag()
                         if not Dragging then
                             return
+                        end
+
+                        if TouchEndConn and TouchEndConn.Connected then
+                            TouchEndConn:Disconnect()
                         end
 
                         local MousePos = UserInputService:GetMouseLocation()
@@ -12312,8 +12328,12 @@ function Library:CreateWindow(WindowInfo)
                             )
                         end
 
-                        local StillHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-                            or UserInputService:GetTouchCount() > 0
+                        local StillHeld
+                        if HeldInputType == Enum.UserInputType.Touch then
+                            StillHeld = not TouchReleased
+                        else
+                            StillHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+                        end
 
                         if not StillHeld then
                             if Heartbeat and Heartbeat.Connected then
