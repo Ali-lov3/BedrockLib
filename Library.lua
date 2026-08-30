@@ -10446,8 +10446,7 @@ function Library:CreateWindow(WindowInfo)
 
         --// Top Bar \\-
         TopBar = New("Frame", {
-            BackgroundColor3 = "MainColor",
-            BackgroundTransparency = 0.2,
+            BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 48),
             Parent = MainFrame,
         })
@@ -11880,7 +11879,8 @@ function Library:CreateWindow(WindowInfo)
 
                 GroupboxTop = New("Frame", {
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    BackgroundTransparency = 1,
+                    BackgroundColor3 = "MainColor",
+                    BackgroundTransparency = 0.86,
                     Size = UDim2.fromScale(1, 0),
                     Parent = GroupboxHolder,
                 })
