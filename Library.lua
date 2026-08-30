@@ -12274,7 +12274,7 @@ function Library:CreateWindow(WindowInfo)
                         BackgroundColor3 = "AccentColor",
                         BackgroundTransparency = 0.5,
                         BorderSizePixel = 0,
-                        Size = GroupboxHolder.AbsoluteSize,
+                        Size = UDim2.fromOffset(GroupboxHolder.AbsoluteSize.X, GroupboxHolder.AbsoluteSize.Y),
                         Position = UDim2.fromOffset(GroupboxHolder.AbsolutePosition.X, GroupboxHolder.AbsolutePosition.Y),
                         ZIndex = 10000,
                         Parent = ScreenGui,
