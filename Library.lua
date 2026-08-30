@@ -270,7 +270,7 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-    CornerRadius = 4,
+    CornerRadius = 8,
 
     --// Scheme \\--
     IsLightTheme = false,
@@ -10287,7 +10287,7 @@ function Library:CreateWindow(WindowInfo)
         local Percentage = tonumber(RequestedCornerRadius:match("^%s*([%d%.]+)%%%s*$"))
         RequestedCornerRadius = Percentage and Percentage / 5 or tonumber(RequestedCornerRadius)
     end
-    WindowInfo.CornerRadius = math.clamp(tonumber(RequestedCornerRadius) or 4, 0, 20)
+        WindowInfo.CornerRadius = math.clamp(tonumber(RequestedCornerRadius) or 8, 0, 20)
 
     --// Old Naming \\--
     if WindowInfo.Compact ~= nil then
@@ -10345,6 +10345,8 @@ function Library:CreateWindow(WindowInfo)
         AvoidCoreGui = WindowInfo.SnapAvoidCoreGui,
     }
 
+    local TopBarHeight = 54
+    local BottomBarHeight = 24
     local InitialLeftWidth = math.ceil(WindowInfo.Size.X.Offset * 0.3)
     local IsCompact = WindowInfo.SidebarCompacted
     local LastExpandedWidth = InitialLeftWidth
@@ -10381,7 +10383,7 @@ function Library:CreateWindow(WindowInfo)
         )
         Library:AddOutline(MainFrame)
         Library:MakeLine(MainFrame, {
-            Position = UDim2.fromOffset(0, 48),
+            Position = UDim2.fromOffset(0, TopBarHeight),
             Size = UDim2.new(1, 0, 0, 1),
         })
 
@@ -10447,7 +10449,7 @@ function Library:CreateWindow(WindowInfo)
         --// Top Bar \\-
         TopBar = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 48),
+            Size = UDim2.new(1, 0, 0, TopBarHeight),
             Parent = MainFrame,
         })
         Library:MakeDraggable(MainFrame, TopBar, false, true, WindowSnapConfig)
@@ -10504,8 +10506,8 @@ function Library:CreateWindow(WindowInfo)
         RightWrapper = New("Frame", {
             AnchorPoint = Vector2.new(1, 0.5),
             BackgroundTransparency = 1,
-            Position = UDim2.new(1, -49, 0.5, 0),
-            Size = UDim2.new(1, -InitialLeftWidth - 57 - 1, 1, -16),
+            Position = UDim2.new(1, -54, 0.5, 0),
+            Size = UDim2.new(1, -InitialLeftWidth - 62 - 1, 1, -14),
             Parent = TopBar,
         })
 
@@ -10638,15 +10640,16 @@ function Library:CreateWindow(WindowInfo)
         --// Bottom Bar \\--
         BottomBackground = New("Frame", {
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = "MainColor",
-            BackgroundTransparency = 0.35,
+            BackgroundColor3 = function()
+                return Library:GetBetterColor(Library.Scheme.BackgroundColor, 4)
+            end,
             Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 20 + WindowInfo.CornerRadius),
+            Size = UDim2.new(1, 0, 0, BottomBarHeight + WindowInfo.CornerRadius),
             Parent = MainFrame
         })
         Library:MakeLine(MainFrame, {
             AnchorPoint = Vector2.new(0, 1),
-            Position = UDim2.new(0, 0, 1, -20),
+            Position = UDim2.new(0, 0, 1, -BottomBarHeight),
             Size = UDim2.new(1, 0, 0, 1),
         })
 
@@ -10654,7 +10657,7 @@ function Library:CreateWindow(WindowInfo)
             AnchorPoint = Vector2.new(0, 1),
             BackgroundTransparency = 1,
             Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(1, 0, 0, 20),
+            Size = UDim2.new(1, 0, 0, BottomBarHeight),
             Parent = MainFrame,
         })
         table.insert(
@@ -10710,15 +10713,15 @@ function Library:CreateWindow(WindowInfo)
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = "BackgroundColor",
             CanvasSize = UDim2.fromScale(0, 0),
-            Position = UDim2.fromOffset(0, 49),
+            Position = UDim2.fromOffset(0, TopBarHeight + 1),
             ScrollBarThickness = 0,
-            Size = UDim2.new(0, InitialLeftWidth, 1, -70),
+            Size = UDim2.new(0, InitialLeftWidth, 1, -(TopBarHeight + BottomBarHeight + 1)),
             Parent = MainFrame,
         })
-        New("UIListLayout", {
-            Padding = UDim.new(0, 4),
-            Parent = Tabs,
-        })
+            New("UIListLayout", {
+                Padding = UDim.new(0, 6),
+                Parent = Tabs,
+            })
         New("UIPadding", {
             PaddingBottom = UDim.new(0, 8),
             PaddingLeft = UDim.new(0, 8),
@@ -10735,8 +10738,8 @@ function Library:CreateWindow(WindowInfo)
             end,
             ClipsDescendants = true,
             Name = "Container",
-            Position = UDim2.new(1, 0, 0, 49),
-            Size = UDim2.new(1, -InitialLeftWidth - 1, 1, -70),
+            Position = UDim2.new(1, 0, 0, TopBarHeight + 1),
+            Size = UDim2.new(1, -InitialLeftWidth - 1, 1, -(TopBarHeight + BottomBarHeight + 1)),
             Parent = MainFrame,
         })
         New("UIPadding", {
@@ -10885,7 +10888,7 @@ function Library:CreateWindow(WindowInfo)
         WindowInfo.CornerRadius = Radius
 
         ResizeButton.Position = UDim2.new(1, -Radius / 4, 0, 0)
-        BottomBackground.Size = UDim2.new(1, 0, 0, 20 + Radius)
+        BottomBackground.Size = UDim2.new(1, 0, 0, BottomBarHeight + Radius)
 
         for _, Menu in Library.ContextMenus do
             if Menu.Destroyed then
@@ -11012,9 +11015,9 @@ function Library:CreateWindow(WindowInfo)
         DividerLine.Position = UDim2.fromOffset(Width, 0)
 
         TitleHolder.Size = UDim2.new(0, Width, 1, 0)
-        RightWrapper.Size = UDim2.new(1, -Width - 57 - 1, 1, -16)
-        Tabs.Size = UDim2.new(0, Width, 1, -70)
-        Container.Size = UDim2.new(1, -Width - 1, 1, -70)
+        RightWrapper.Size = UDim2.new(1, -Width - 62 - 1, 1, -14)
+        Tabs.Size = UDim2.new(0, Width, 1, -(TopBarHeight + BottomBarHeight + 1))
+        Container.Size = UDim2.new(1, -Width - 1, 1, -(TopBarHeight + BottomBarHeight + 1))
 
         if WindowInfo.EnableCompacting then
             ApplyCompact()
@@ -11067,9 +11070,6 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
-        local TabStroke
-        local ActiveIndicator
-        local ActiveIndicatorTween
 
         local TabContainer
         local TabLeft
@@ -11081,7 +11081,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundColor3 = "MainColor",
                 BackgroundTransparency = 1,
                 ClipsDescendants = true,
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 44),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
@@ -11091,27 +11091,6 @@ function Library:CreateWindow(WindowInfo)
                 New("UICorner", {
                     CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
                     Parent = TabButton,
-                })
-            )
-            TabStroke = New("UIStroke", {
-                Color = "OutlineColor",
-                Transparency = 1,
-                Thickness = 1,
-                Parent = TabButton,
-            })
-            ActiveIndicator = New("Frame", {
-                AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = "AccentColor",
-                Position = UDim2.new(1, -4, 0.5, 0),
-                Size = UDim2.fromOffset(3, 20),
-                Visible = false,
-                Parent = TabButton,
-            })
-            table.insert(
-                Library.Corners,
-                New("UICorner", {
-                    CornerRadius = UDim.new(0, WindowInfo.CornerRadius / 2),
-                    Parent = ActiveIndicator,
                 })
             )
             local ButtonPadding = New("UIPadding", {
@@ -11147,7 +11126,6 @@ function Library:CreateWindow(WindowInfo)
             end
 
             table.insert(Library.TabButtons, {
-                Button = TabButton,
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
@@ -11465,7 +11443,6 @@ function Library:CreateWindow(WindowInfo)
 
             local TabboxHolder
             local TabboxButtons
-            local TabboxOutline
 
             do
                 TabboxHolder = New("Frame", {
@@ -11481,7 +11458,7 @@ function Library:CreateWindow(WindowInfo)
                         Parent = TabboxHolder,
                     })
                 )
-                TabboxOutline = Library:AddOutline(TabboxHolder)
+                Library:AddOutline(TabboxHolder)
 
                 TabboxButtons = New("Frame", {
                     BackgroundTransparency = 1,
@@ -11514,16 +11491,6 @@ function Library:CreateWindow(WindowInfo)
 
                 ParentBox = if ParentObj.Type == "Groupbox" then ParentObj else nil,
             }
-            table.insert(Tabbox.Connections, TabboxHolder.MouseEnter:Connect(function()
-                TweenService:Create(TabboxOutline, Library.TweenInfo, {
-                    Color = Library.Scheme.AccentColor,
-                }):Play()
-            end))
-            table.insert(Tabbox.Connections, TabboxHolder.MouseLeave:Connect(function()
-                TweenService:Create(TabboxOutline, Library.TweenInfo, {
-                    Color = Library.Scheme.OutlineColor,
-                }):Play()
-            end))
 
             function Tabbox:UpdateCorners()
                 for _, Tab in Tabbox.Tabs do
@@ -11864,7 +11831,6 @@ function Library:CreateWindow(WindowInfo)
 
             local GroupboxCollapseArrow
             local GroupboxLine
-            local GroupboxOutline
 
             do
                 GroupboxHolder = New("Frame", {
@@ -11883,12 +11849,11 @@ function Library:CreateWindow(WindowInfo)
                 New("UIListLayout", {
                     Parent = GroupboxHolder,
                 })
-                GroupboxOutline = Library:AddOutline(GroupboxHolder)
+                Library:AddOutline(GroupboxHolder)
 
                 GroupboxTop = New("Frame", {
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    BackgroundColor3 = "MainColor",
-                    BackgroundTransparency = 0.86,
+                    BackgroundTransparency = 1,
                     Size = UDim2.fromScale(1, 0),
                     Parent = GroupboxHolder,
                 })
@@ -11989,14 +11954,14 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 8),
+                    Padding = UDim.new(0, 10),
                     Parent = GroupboxContainer,
                 })
                 New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 7),
-                    PaddingLeft = UDim.new(0, 7),
-                    PaddingRight = UDim.new(0, 7),
-                    PaddingTop = UDim.new(0, 7),
+                    PaddingBottom = UDim.new(0, 9),
+                    PaddingLeft = UDim.new(0, 9),
+                    PaddingRight = UDim.new(0, 9),
+                    PaddingTop = UDim.new(0, 9),
                     Parent = GroupboxContainer,
                 })
             end
@@ -12021,22 +11986,6 @@ function Library:CreateWindow(WindowInfo)
                 DependencyBoxes = {},
                 Elements = {}
             }
-            table.insert(Groupbox.Connections, GroupboxHolder.MouseEnter:Connect(function()
-                TweenService:Create(GroupboxOutline, Library.TweenInfo, {
-                    Color = Library.Scheme.AccentColor,
-                }):Play()
-                TweenService:Create(GroupboxTop, Library.TweenInfo, {
-                    BackgroundTransparency = 0.78,
-                }):Play()
-            end))
-            table.insert(Groupbox.Connections, GroupboxHolder.MouseLeave:Connect(function()
-                TweenService:Create(GroupboxOutline, Library.TweenInfo, {
-                    Color = Library.Scheme.OutlineColor,
-                }):Play()
-                TweenService:Create(GroupboxTop, Library.TweenInfo, {
-                    BackgroundTransparency = 0.86,
-                }):Play()
-            end))
 
             local ResizeTween
             local CollapseArrowTween
@@ -12252,14 +12201,12 @@ function Library:CreateWindow(WindowInfo)
                 return
             end
 
+            TweenService:Create(TabButton, Library.TweenInfo, {
+                BackgroundTransparency = Hovering and 0.65 or 1,
+            }):Play()
+
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = Hovering and 0.25 or 0.5,
-            }):Play()
-            TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = Hovering and 0.82 or 1,
-            }):Play()
-            TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = Hovering and 0.6 or 1,
             }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
@@ -12280,18 +12227,6 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 0,
             }):Play()
-            TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 0.25,
-            }):Play()
-            ActiveIndicator.Visible = true
-            if ActiveIndicatorTween then
-                StopTween(ActiveIndicatorTween, true)
-            end
-            ActiveIndicator.Size = UDim2.fromOffset(3, 0)
-            ActiveIndicatorTween = TweenService:Create(ActiveIndicator, Library.TweenInfo, {
-                Size = UDim2.fromOffset(3, 20),
-            })
-            ActiveIndicatorTween:Play()
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
             }):Play()
@@ -12319,15 +12254,6 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 1,
             }):Play()
-            TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 1,
-            }):Play()
-            if ActiveIndicatorTween then
-                StopTween(ActiveIndicatorTween, true)
-                ActiveIndicatorTween = nil
-            end
-            ActiveIndicator.Visible = false
-            ActiveIndicator.Size = UDim2.fromOffset(3, 20)
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0.5,
@@ -12452,9 +12378,6 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
-        local TabStroke
-        local ActiveIndicator
-        local ActiveIndicatorTween
 
         local TabContainer
 
@@ -12463,40 +12386,11 @@ function Library:CreateWindow(WindowInfo)
             TabButton = New("TextButton", {
                 BackgroundColor3 = "MainColor",
                 BackgroundTransparency = 1,
-                ClipsDescendants = true,
                 Size = UDim2.new(1, 0, 0, 40),
                 Text = "",
                 LayoutOrder = Order,
                 Parent = Tabs,
             })
-            table.insert(
-                Library.Corners,
-                New("UICorner", {
-                    CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                    Parent = TabButton,
-                })
-            )
-            TabStroke = New("UIStroke", {
-                Color = "OutlineColor",
-                Transparency = 1,
-                Thickness = 1,
-                Parent = TabButton,
-            })
-            ActiveIndicator = New("Frame", {
-                AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = "AccentColor",
-                Position = UDim2.new(1, -4, 0.5, 0),
-                Size = UDim2.fromOffset(3, 20),
-                Visible = false,
-                Parent = TabButton,
-            })
-            table.insert(
-                Library.Corners,
-                New("UICorner", {
-                    CornerRadius = UDim.new(0, WindowInfo.CornerRadius / 2),
-                    Parent = ActiveIndicator,
-                })
-            )
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
                 PaddingLeft = UDim.new(0, IsCompact and 6 or 12),
@@ -12529,7 +12423,6 @@ function Library:CreateWindow(WindowInfo)
             end
 
             table.insert(Library.TabButtons, {
-                Button = TabButton,
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
@@ -12702,12 +12595,6 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = Hovering and 0.25 or 0.5,
             }):Play()
-            TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = Hovering and 0.82 or 1,
-            }):Play()
-            TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = Hovering and 0.6 or 1,
-            }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
                     ImageTransparency = Hovering and 0.25 or 0.5,
@@ -12727,18 +12614,6 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 0,
             }):Play()
-            TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 0.25,
-            }):Play()
-            ActiveIndicator.Visible = true
-            if ActiveIndicatorTween then
-                StopTween(ActiveIndicatorTween, true)
-            end
-            ActiveIndicator.Size = UDim2.fromOffset(3, 0)
-            ActiveIndicatorTween = TweenService:Create(ActiveIndicator, Library.TweenInfo, {
-                Size = UDim2.fromOffset(3, 20),
-            })
-            ActiveIndicatorTween:Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
@@ -12769,15 +12644,6 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 1,
             }):Play()
-            TweenService:Create(TabStroke, Library.TweenInfo, {
-                Transparency = 1,
-            }):Play()
-            if ActiveIndicatorTween then
-                StopTween(ActiveIndicatorTween, true)
-                ActiveIndicatorTween = nil
-            end
-            ActiveIndicator.Visible = false
-            ActiveIndicator.Size = UDim2.fromOffset(3, 20)
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0.5,
