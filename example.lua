@@ -69,9 +69,48 @@ local Dashboard = DashboardManager:ApplyDashboard(Window, {
 })
 
 Tabs.Example:AddLabel("This is a normal tab.")
+Tabs.Example:AddLabel({
+Text = "Normal Tab Controls",
+Size = 18,
+})
+Tabs.Example:AddDivider("Basic Controls")
 Tabs.Example:AddToggle("NormalTabToggle", {
 Text = "Normal tab toggle",
 Default = false,
+})
+Tabs.Example:AddCheckbox("NormalTabCheckbox", {
+Text = "Normal tab checkbox",
+Default = true,
+})
+Tabs.Example:AddButton({
+Text = "Normal tab button",
+Func = function()
+Library:Notify({
+Title = "Normal Tab",
+Description = "Button pressed",
+Time = 2,
+})
+end,
+})
+Tabs.Example:AddInput("NormalTabInput", {
+Text = "Normal tab input",
+Default = "",
+Placeholder = "Type something",
+Callback = function(Value)
+print("Normal tab input:", Value)
+end,
+})
+Tabs.Example:AddSlider("NormalTabSlider", {
+Text = "Normal tab slider",
+Default = 50,
+Min = 0,
+Max = 100,
+Rounding = 0,
+})
+Tabs.Example:AddDropdown("NormalTabDropdown", {
+Text = "Normal tab dropdown",
+Values = { "Option 1", "Option 2", "Option 3" },
+Default = 1,
 })
 
 --[[

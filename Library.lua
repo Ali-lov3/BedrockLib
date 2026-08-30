@@ -11205,7 +11205,8 @@ function Library:CreateWindow(WindowInfo)
             if IsNormal then
                 TabContainer = New("ScrollingFrame", {
                     AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                    BackgroundTransparency = 1,
+                    BackgroundColor3 = "BackgroundColor",
+                    BackgroundTransparency = 0,
                     CanvasSize = UDim2.fromScale(0, 0),
                     ScrollBarThickness = 0,
                     Position = UDim2.fromScale(0, 0),
@@ -11213,15 +11214,25 @@ function Library:CreateWindow(WindowInfo)
                     Visible = false,
                     Parent = Container,
                 })
+                table.insert(
+                    Library.Corners,
+                    New("UICorner", {
+                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                        Parent = TabContainer,
+                    })
+                )
+                Library:AddOutline(TabContainer)
                 New("UIListLayout", {
                     HorizontalAlignment = Enum.HorizontalAlignment.Center,
                     Padding = UDim.new(0, 8),
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Top,
                     Parent = TabContainer,
                 })
                 New("UIPadding", {
-                    PaddingLeft = UDim.new(0, 1),
-                    PaddingRight = UDim.new(0, 1),
+                    PaddingBottom = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                    PaddingTop = UDim.new(0, 8),
                     Parent = TabContainer,
                 })
             else
