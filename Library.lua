@@ -12288,7 +12288,21 @@ function Library:CreateWindow(WindowInfo)
                         Parent = DragGhost,
                     })
 
-                    local HeldInputType = Input.UserInputType
+                    local function FinishDrag()
+                        if not Dragging then
+                            return
+                        end
+
+                        local MousePos = UserInputService:GetMouseLocation()
+                        local TargetSide = GetTargetSide(MousePos)
+
+                        StopDragging()
+
+                        if TargetSide ~= Groupbox.Side then
+                            Groupbox.Side = TargetSide
+                            BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
+                        end
+                    end
 
                     InputChanged = UserInputService.InputChanged:Connect(function(ChangedInput: InputObject)
                         if not Dragging then
@@ -12307,18 +12321,19 @@ function Library:CreateWindow(WindowInfo)
                     end)
 
                     InputEnded = UserInputService.InputEnded:Connect(function(EndedInput: InputObject)
-                        if not Dragging or EndedInput.UserInputType ~= HeldInputType then
-                            return
+                        if EndedInput.UserInputType == Enum.UserInputType.MouseButton1
+                            or EndedInput.UserInputType == Enum.UserInputType.Touch then
+                            FinishDrag()
                         end
+                    end)
 
-                        local MousePos = UserInputService:GetMouseLocation()
-                        local TargetSide = GetTargetSide(MousePos)
-
-                        StopDragging()
-
-                        if TargetSide ~= Groupbox.Side then
-                            Groupbox.Side = TargetSide
-                            BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
+                    local ChangedFallback
+                    ChangedFallback = Input.Changed:Connect(function()
+                        if Input.UserInputState == Enum.UserInputState.End or Input.UserInputState == Enum.UserInputState.Cancel then
+                            FinishDrag()
+                            if ChangedFallback and ChangedFallback.Connected then
+                                ChangedFallback:Disconnect()
+                            end
                         end
                     end)
                 end)
