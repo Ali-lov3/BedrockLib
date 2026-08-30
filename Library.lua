@@ -12168,6 +12168,10 @@ function Library:CreateWindow(WindowInfo)
                     CollapseArrowTween = nil
                 end
 
+                if Groupbox.CancelDrag then
+                    Groupbox.CancelDrag()
+                end
+
                 if Groupbox.Connections then
                     for _, Connection in Groupbox.Connections do
                         Connection:Disconnect()
@@ -12264,7 +12268,7 @@ function Library:CreateWindow(WindowInfo)
                 end
 
                 InputBegan = GroupboxTop.InputBegan:Connect(function(Input: InputObject)
-                    if not IsClickInput(Input) or Groupbox.Destroyed then
+                    if not IsClickInput(Input) or Groupbox.Destroyed or Dragging then
                         return
                     end
 
@@ -12284,6 +12288,8 @@ function Library:CreateWindow(WindowInfo)
                         Parent = DragGhost,
                     })
 
+                    local HeldInputType = Input.UserInputType
+
                     InputChanged = UserInputService.InputChanged:Connect(function(ChangedInput: InputObject)
                         if not Dragging then
                             return
@@ -12300,8 +12306,8 @@ function Library:CreateWindow(WindowInfo)
                         end
                     end)
 
-                    InputEnded = Input.Changed:Connect(function()
-                        if Input.UserInputState ~= Enum.UserInputState.End or not Dragging then
+                    InputEnded = UserInputService.InputEnded:Connect(function(EndedInput: InputObject)
+                        if not Dragging or EndedInput.UserInputType ~= HeldInputType then
                             return
                         end
 
@@ -12316,6 +12322,8 @@ function Library:CreateWindow(WindowInfo)
                         end
                     end)
                 end)
+
+                Groupbox.CancelDrag = StopDragging
 
                 Groupbox.Connections = Groupbox.Connections or {}
                 table.insert(Groupbox.Connections, InputBegan)
