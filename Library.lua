@@ -10360,6 +10360,7 @@ function Library:CreateWindow(WindowInfo)
                 return Library:GetBetterColor(Library.Scheme.BackgroundColor, -1)
             end,
             Name = "Main",
+            ClipsDescendants = true,
             Text = "",
             Position = WindowInfo.Position,
             Size = WindowInfo.Size,
