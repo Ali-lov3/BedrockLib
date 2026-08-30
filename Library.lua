@@ -11067,6 +11067,7 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
+        local TabStroke
         local ActiveIndicator
         local ActiveIndicatorTween
 
@@ -11092,6 +11093,12 @@ function Library:CreateWindow(WindowInfo)
                     Parent = TabButton,
                 })
             )
+            TabStroke = New("UIStroke", {
+                Color = "OutlineColor",
+                Transparency = 1,
+                Thickness = 1,
+                Parent = TabButton,
+            })
             ActiveIndicator = New("Frame", {
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = "AccentColor",
@@ -11140,6 +11147,7 @@ function Library:CreateWindow(WindowInfo)
             end
 
             table.insert(Library.TabButtons, {
+                Button = TabButton,
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
@@ -12017,10 +12025,16 @@ function Library:CreateWindow(WindowInfo)
                 TweenService:Create(GroupboxOutline, Library.TweenInfo, {
                     Color = Library.Scheme.AccentColor,
                 }):Play()
+                TweenService:Create(GroupboxTop, Library.TweenInfo, {
+                    BackgroundTransparency = 0.78,
+                }):Play()
             end))
             table.insert(Groupbox.Connections, GroupboxHolder.MouseLeave:Connect(function()
                 TweenService:Create(GroupboxOutline, Library.TweenInfo, {
                     Color = Library.Scheme.OutlineColor,
+                }):Play()
+                TweenService:Create(GroupboxTop, Library.TweenInfo, {
+                    BackgroundTransparency = 0.86,
                 }):Play()
             end))
 
@@ -12244,6 +12258,9 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = Hovering and 0.82 or 1,
             }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = Hovering and 0.6 or 1,
+            }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
                     ImageTransparency = Hovering and 0.25 or 0.5,
@@ -12262,6 +12279,9 @@ function Library:CreateWindow(WindowInfo)
 
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 0,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 0.25,
             }):Play()
             ActiveIndicator.Visible = true
             if ActiveIndicatorTween then
@@ -12298,6 +12318,9 @@ function Library:CreateWindow(WindowInfo)
         function Tab:Hide()
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 1,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 1,
             }):Play()
             if ActiveIndicatorTween then
                 StopTween(ActiveIndicatorTween, true)
@@ -12429,6 +12452,7 @@ function Library:CreateWindow(WindowInfo)
         local TabButton: TextButton
         local TabLabel
         local TabIcon
+        local TabStroke
         local ActiveIndicator
         local ActiveIndicatorTween
 
@@ -12452,6 +12476,12 @@ function Library:CreateWindow(WindowInfo)
                     Parent = TabButton,
                 })
             )
+            TabStroke = New("UIStroke", {
+                Color = "OutlineColor",
+                Transparency = 1,
+                Thickness = 1,
+                Parent = TabButton,
+            })
             ActiveIndicator = New("Frame", {
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = "AccentColor",
@@ -12499,6 +12529,7 @@ function Library:CreateWindow(WindowInfo)
             end
 
             table.insert(Library.TabButtons, {
+                Button = TabButton,
                 Label = TabLabel,
                 Padding = ButtonPadding,
                 Icon = TabIcon,
@@ -12674,6 +12705,9 @@ function Library:CreateWindow(WindowInfo)
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = Hovering and 0.82 or 1,
             }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = Hovering and 0.6 or 1,
+            }):Play()
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
                     ImageTransparency = Hovering and 0.25 or 0.5,
@@ -12692,6 +12726,9 @@ function Library:CreateWindow(WindowInfo)
 
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 0,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 0.25,
             }):Play()
             ActiveIndicator.Visible = true
             if ActiveIndicatorTween then
@@ -12731,6 +12768,9 @@ function Library:CreateWindow(WindowInfo)
         function Tab:Hide()
             TweenService:Create(TabButton, Library.TweenInfo, {
                 BackgroundTransparency = 1,
+            }):Play()
+            TweenService:Create(TabStroke, Library.TweenInfo, {
+                Transparency = 1,
             }):Play()
             if ActiveIndicatorTween then
                 StopTween(ActiveIndicatorTween, true)
