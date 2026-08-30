@@ -276,16 +276,16 @@ local Library = {
     IsLightTheme = false,
     Scheme = {
         BackgroundColor = Color3.fromRGB(8, 8, 8),
-        MainColor = Color3.fromRGB(27, 20, 8),
-        AccentColor = Color3.fromRGB(212, 175, 55),
-        OutlineColor = Color3.fromRGB(91, 69, 22),
-        FontColor = Color3.fromRGB(255, 244, 204),
+        MainColor = Color3.fromRGB(24, 24, 24),
+        AccentColor = Color3.fromRGB(235, 235, 235),
+        OutlineColor = Color3.fromRGB(55, 55, 55),
+        FontColor = Color3.new(1, 1, 1),
         Font = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 
         RedColor = Color3.fromRGB(255, 50, 50),
         DestructiveColor = Color3.fromRGB(220, 38, 38),
         DarkColor = Color3.new(0, 0, 0),
-        WhiteColor = Color3.fromRGB(255, 244, 204),
+        WhiteColor = Color3.new(1, 1, 1),
 
         BackgroundImage = ""
     },
@@ -10377,8 +10377,8 @@ function Library:CreateWindow(WindowInfo)
         })
         New("UIGradient", {
             Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 90)),
-                ColorSequenceKeypoint.new(0.42, Color3.fromRGB(155, 107, 26)),
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+                ColorSequenceKeypoint.new(0.42, Color3.fromRGB(105, 105, 105)),
                 ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
             }),
             Rotation = 28,
