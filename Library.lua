@@ -12221,6 +12221,106 @@ function Library:CreateWindow(WindowInfo)
                 end)
             end
 
+            Groupbox.Side = Info.Side
+
+            do
+                local DragGhost
+                local Dragging = false
+                local InputBegan, InputChanged, InputEnded
+
+                local function GetTargetSide(InputPos: Vector2)
+                    local LeftAbs = TabLeft.AbsolutePosition
+                    local LeftSize = TabLeft.AbsoluteSize
+                    local RightAbs = TabRight.AbsolutePosition
+                    local RightSize = TabRight.AbsoluteSize
+
+                    local LeftCenterX = LeftAbs.X + LeftSize.X / 2
+                    local RightCenterX = RightAbs.X + RightSize.X / 2
+
+                    if math.abs(InputPos.X - LeftCenterX) <= math.abs(InputPos.X - RightCenterX) then
+                        return 1
+                    else
+                        return 2
+                    end
+                end
+
+                local function StopDragging()
+                    Dragging = false
+
+                    if DragGhost then
+                        DragGhost:Destroy()
+                        DragGhost = nil
+                    end
+
+                    if InputChanged and InputChanged.Connected then
+                        InputChanged:Disconnect()
+                        InputChanged = nil
+                    end
+
+                    if InputEnded and InputEnded.Connected then
+                        InputEnded:Disconnect()
+                        InputEnded = nil
+                    end
+                end
+
+                InputBegan = GroupboxTop.InputBegan:Connect(function(Input: InputObject)
+                    if not IsClickInput(Input) or Groupbox.Destroyed then
+                        return
+                    end
+
+                    Dragging = true
+
+                    DragGhost = New("Frame", {
+                        BackgroundColor3 = "AccentColor",
+                        BackgroundTransparency = 0.5,
+                        BorderSizePixel = 0,
+                        Size = GroupboxHolder.AbsoluteSize,
+                        Position = UDim2.fromOffset(GroupboxHolder.AbsolutePosition.X, GroupboxHolder.AbsolutePosition.Y),
+                        ZIndex = 10000,
+                        Parent = ScreenGui,
+                    })
+                    New("UICorner", {
+                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                        Parent = DragGhost,
+                    })
+
+                    InputChanged = UserInputService.InputChanged:Connect(function(ChangedInput: InputObject)
+                        if not Dragging then
+                            return
+                        end
+
+                        if ChangedInput.UserInputType == Enum.UserInputType.MouseMovement or ChangedInput.UserInputType == Enum.UserInputType.Touch then
+                            local MousePos = UserInputService:GetMouseLocation()
+                            if DragGhost then
+                                DragGhost.Position = UDim2.fromOffset(
+                                    MousePos.X - DragGhost.AbsoluteSize.X / 2,
+                                    MousePos.Y - DragGhost.AbsoluteSize.Y / 2
+                                )
+                            end
+                        end
+                    end)
+
+                    InputEnded = Input.Changed:Connect(function()
+                        if Input.UserInputState ~= Enum.UserInputState.End or not Dragging then
+                            return
+                        end
+
+                        local MousePos = UserInputService:GetMouseLocation()
+                        local TargetSide = GetTargetSide(MousePos)
+
+                        StopDragging()
+
+                        if TargetSide ~= Groupbox.Side then
+                            Groupbox.Side = TargetSide
+                            BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
+                        end
+                    end)
+                end)
+
+                Groupbox.Connections = Groupbox.Connections or {}
+                table.insert(Groupbox.Connections, InputBegan)
+            end
+
             Groupbox.AddTabbox = AddTabbox
             setmetatable(Groupbox, BaseGroupbox)
 
