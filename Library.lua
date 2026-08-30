@@ -447,6 +447,7 @@ local Templates = {
         Collapsed = false,
         DisableCollapsing = false,
         PopOut = true,
+        SideDraggable = true,
     },
     Tabbox = {
         Side = 1,
@@ -12168,10 +12169,6 @@ function Library:CreateWindow(WindowInfo)
                     CollapseArrowTween = nil
                 end
 
-                if Groupbox.CancelDrag then
-                    Groupbox.CancelDrag()
-                end
-
                 if Groupbox.Connections then
                     for _, Connection in Groupbox.Connections do
                         Connection:Disconnect()
@@ -12225,151 +12222,176 @@ function Library:CreateWindow(WindowInfo)
                 end)
             end
 
-            Groupbox.Side = Info.Side
+            Groupbox.AddTabbox = AddTabbox
+            setmetatable(Groupbox, BaseGroupbox)
 
-            do
-                local DragGhost
+            function Groupbox:MakeSideDraggable()
+                local DragHandle = GroupboxTop
                 local Dragging = false
-                local InputBegan
+                local DropIndicator
 
-                local function GetTargetSide(InputPos: Vector2)
-                    local LeftAbs = TabLeft.AbsolutePosition
-                    local LeftSize = TabLeft.AbsoluteSize
-                    local RightAbs = TabRight.AbsolutePosition
-                    local RightSize = TabRight.AbsoluteSize
+                local function GetDropIndicator()
+                    if not DropIndicator then
+                        DropIndicator = New("Frame", {
+                            BackgroundColor3 = "AccentColor",
+                            BackgroundTransparency = 0.25,
+                            BorderSizePixel = 0,
+                            Size = UDim2.new(1, 0, 0, 3),
+                            Visible = false,
+                            ZIndex = 10000,
+                        })
+                    end
+                    return DropIndicator
+                end
 
-                    local LeftCenterX = LeftAbs.X + LeftSize.X / 2
-                    local RightCenterX = RightAbs.X + RightSize.X / 2
+                local function ClearIndicator()
+                    if DropIndicator then
+                        DropIndicator.Visible = false
+                        DropIndicator.Parent = nil
+                    end
+                end
 
-                    if math.abs(InputPos.X - LeftCenterX) <= math.abs(InputPos.X - RightCenterX) then
-                        return 1
+                local function GetTargetHolder(MousePos: Vector2)
+                    local LeftAbsPos = TabLeft.AbsolutePosition
+                    local LeftAbsSize = TabLeft.AbsoluteSize
+                    local RightAbsPos = TabRight.AbsolutePosition
+                    local RightAbsSize = TabRight.AbsoluteSize
+
+                    local InLeft = MousePos.X >= LeftAbsPos.X and MousePos.X <= (LeftAbsPos.X + LeftAbsSize.X)
+                        and MousePos.Y >= LeftAbsPos.Y and MousePos.Y <= (LeftAbsPos.Y + LeftAbsSize.Y)
+                    local InRight = MousePos.X >= RightAbsPos.X and MousePos.X <= (RightAbsPos.X + RightAbsSize.X)
+                        and MousePos.Y >= RightAbsPos.Y and MousePos.Y <= (RightAbsPos.Y + RightAbsSize.Y)
+
+                    if InLeft then
+                        return TabLeft, 1
+                    elseif InRight then
+                        return TabRight, 2
+                    end
+
+                    local DistLeft = math.abs(MousePos.X - (LeftAbsPos.X + LeftAbsSize.X / 2))
+                    local DistRight = math.abs(MousePos.X - (RightAbsPos.X + RightAbsSize.X / 2))
+                    if DistLeft <= DistRight then
+                        return TabLeft, 1
                     else
-                        return 2
+                        return TabRight, 2
                     end
                 end
 
-                local function StopDragging()
-                    Dragging = false
-
-                    if DragGhost then
-                        DragGhost:Destroy()
-                        DragGhost = nil
+                local function GetInsertIndex(TargetHolder: GuiObject, MousePos: Vector2)
+                    local BestIndex = #TargetHolder:GetChildren()
+                    local Children = {}
+                    for _, Child in TargetHolder:GetChildren() do
+                        if Child:IsA("Frame") and Child ~= BoxHolder then
+                            table.insert(Children, Child)
+                        end
                     end
+                    table.sort(Children, function(A, B)
+                        return A.AbsolutePosition.Y < B.AbsolutePosition.Y
+                    end)
+
+                    BestIndex = #Children + 1
+                    for Idx, Child in Children do
+                        local ChildMid = Child.AbsolutePosition.Y + (Child.AbsoluteSize.Y / 2)
+                        if MousePos.Y < ChildMid then
+                            BestIndex = Idx
+                            break
+                        end
+                    end
+
+                    return BestIndex, Children
                 end
 
-                InputBegan = GroupboxTop.InputBegan:Connect(function(Input: InputObject)
-                    if not IsClickInput(Input) or Groupbox.Destroyed or Dragging then
+                local InputBegan
+                local InputChanged
+                local InputEnded
+
+                InputBegan = DragHandle.InputBegan:Connect(function(Input: InputObject)
+                    if not IsClickInput(Input) then
                         return
                     end
 
-                    local StartPos = UserInputService:GetMouseLocation()
-                    local GhostSpawned = false
-                    local Watching = true
-                    local Released = false
+                    Dragging = true
 
-                    local function FinishDrag()
-                        if not Watching then
-                            return
-                        end
-                        Watching = false
-
-                        if GhostSpawned then
-                            local MousePos = UserInputService:GetMouseLocation()
-                            local TargetSide = GetTargetSide(MousePos)
-
-                            Dragging = false
-                            StopDragging()
-
-                            if TargetSide ~= Groupbox.Side then
-                                Groupbox.Side = TargetSide
-                                BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
-                                Groupbox:Resize()
-                            end
-                        end
-                    end
-
-                    local ReleaseConn
-                    if Input.UserInputType == Enum.UserInputType.Touch then
-                        ReleaseConn = Input.Changed:Connect(function()
-                            if Input.UserInputState == Enum.UserInputState.End
-                                or Input.UserInputState == Enum.UserInputState.Cancel then
-                                Released = true
-                            end
-                        end)
-                    end
-
-                    local Heartbeat
-                    Heartbeat = RunService.Heartbeat:Connect(function()
-                        if not Watching then
-                            if Heartbeat and Heartbeat.Connected then
-                                Heartbeat:Disconnect()
-                            end
-                            if ReleaseConn and ReleaseConn.Connected then
-                                ReleaseConn:Disconnect()
-                            end
-                            return
-                        end
-
-                        local StillHeld
-                        if Input.UserInputType == Enum.UserInputType.Touch then
-                            StillHeld = not Released
-                        else
-                            StillHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-                        end
-
-                        if not StillHeld then
-                            if Heartbeat and Heartbeat.Connected then
-                                Heartbeat:Disconnect()
-                            end
-                            if ReleaseConn and ReleaseConn.Connected then
-                                ReleaseConn:Disconnect()
-                            end
-                            FinishDrag()
+                    InputChanged = UserInputService.InputChanged:Connect(function(MoveInput: InputObject)
+                        if not Dragging or not IsHoverInput(MoveInput) then
                             return
                         end
 
                         local MousePos = UserInputService:GetMouseLocation()
+                        local TargetHolder = GetTargetHolder(MousePos)
+                        local InsertIndex, Children = GetInsertIndex(TargetHolder, MousePos)
 
-                        if not GhostSpawned then
-                            if (MousePos - StartPos).Magnitude < 6 then
-                                return
-                            end
+                        local Indicator = GetDropIndicator()
+                        Indicator.Parent = TargetHolder
+                        Indicator.Visible = true
 
-                            GhostSpawned = true
-                            Dragging = true
+                        if Children[InsertIndex] then
+                            Indicator.LayoutOrder = Children[InsertIndex].LayoutOrder - 1
+                        elseif Children[#Children] then
+                            Indicator.LayoutOrder = Children[#Children].LayoutOrder + 1
+                        else
+                            Indicator.LayoutOrder = 0
+                        end
+                    end)
 
-                            DragGhost = New("Frame", {
-                                BackgroundColor3 = "AccentColor",
-                                BackgroundTransparency = 0.5,
-                                BorderSizePixel = 0,
-                                Size = UDim2.fromOffset(GroupboxHolder.AbsoluteSize.X, GroupboxHolder.AbsoluteSize.Y),
-                                Position = UDim2.fromOffset(GroupboxHolder.AbsolutePosition.X, GroupboxHolder.AbsolutePosition.Y),
-                                ZIndex = 10000,
-                                Parent = ScreenGui,
-                            })
-                            New("UICorner", {
-                                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                                Parent = DragGhost,
-                            })
+                    InputEnded = Input.Changed:Connect(function()
+                        if Input.UserInputState ~= Enum.UserInputState.End then
+                            return
                         end
 
-                        if DragGhost then
-                            DragGhost.Position = UDim2.fromOffset(
-                                MousePos.X - DragGhost.AbsoluteSize.X / 2,
-                                MousePos.Y - DragGhost.AbsoluteSize.Y / 2
-                            )
+                        Dragging = false
+
+                        if InputChanged then
+                            InputChanged:Disconnect()
+                            InputChanged = nil
+                        end
+
+                        local MousePos = UserInputService:GetMouseLocation()
+                        local TargetHolder, TargetSide = GetTargetHolder(MousePos)
+                        local InsertIndex, Children = GetInsertIndex(TargetHolder, MousePos)
+
+                        ClearIndicator()
+
+                        BoxHolder.Parent = TargetHolder
+                        Groupbox.Side = TargetSide
+                        Info.Side = TargetSide
+
+                        if Children[InsertIndex] then
+                            BoxHolder.LayoutOrder = Children[InsertIndex].LayoutOrder - 1
+                        elseif Children[#Children] then
+                            BoxHolder.LayoutOrder = Children[#Children].LayoutOrder + 1
+                        else
+                            BoxHolder.LayoutOrder = 0
+                        end
+
+                        for Idx, Child in Children do
+                            if Idx >= InsertIndex then
+                                Child.LayoutOrder = Child.LayoutOrder + 1
+                            end
+                        end
+
+                        if InputEnded then
+                            InputEnded:Disconnect()
+                            InputEnded = nil
                         end
                     end)
                 end)
 
-                Groupbox.CancelDrag = StopDragging
+                Library:GiveSignal(InputBegan)
 
-                Groupbox.Connections = Groupbox.Connections or {}
-                table.insert(Groupbox.Connections, InputBegan)
+                BoxHolder.Destroying:Once(function()
+                    if InputBegan and InputBegan.Connected then
+                        InputBegan:Disconnect()
+                    end
+                    if InputChanged and InputChanged.Connected then
+                        InputChanged:Disconnect()
+                    end
+                    if InputEnded and InputEnded.Connected then
+                        InputEnded:Disconnect()
+                    end
+                    ClearIndicator()
+                end)
             end
-
-            Groupbox.AddTabbox = AddTabbox
-            setmetatable(Groupbox, BaseGroupbox)
 
             Groupbox:Resize()
             Tab.Groupboxes[Info.Name] = Groupbox
@@ -12380,6 +12402,10 @@ function Library:CreateWindow(WindowInfo)
 
             if Info.DisableCollapsing ~= true and Info.Collapsed == true then
                 Groupbox:SetCollapsed(true)
+            end
+
+            if Info.SideDraggable ~= false then
+                Groupbox:MakeSideDraggable()
             end
 
             return Groupbox
