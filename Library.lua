@@ -12262,75 +12262,57 @@ function Library:CreateWindow(WindowInfo)
                         return
                     end
 
-                    Dragging = true
+                    local StartPos = UserInputService:GetMouseLocation()
+                    local GhostSpawned = false
+                    local Watching = true
+                    local Released = false
 
-                    DragGhost = New("Frame", {
-                        BackgroundColor3 = "AccentColor",
-                        BackgroundTransparency = 0.5,
-                        BorderSizePixel = 0,
-                        Size = UDim2.fromOffset(GroupboxHolder.AbsoluteSize.X, GroupboxHolder.AbsoluteSize.Y),
-                        Position = UDim2.fromOffset(GroupboxHolder.AbsolutePosition.X, GroupboxHolder.AbsolutePosition.Y),
-                        ZIndex = 10000,
-                        Parent = ScreenGui,
-                    })
-                    New("UICorner", {
-                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                        Parent = DragGhost,
-                    })
+                    local function FinishDrag()
+                        if not Watching then
+                            return
+                        end
+                        Watching = false
 
-                    local HeldInputType = Input.UserInputType
-                    local TouchReleased = false
+                        if GhostSpawned then
+                            local MousePos = UserInputService:GetMouseLocation()
+                            local TargetSide = GetTargetSide(MousePos)
 
-                    local TouchEndConn
-                    if HeldInputType == Enum.UserInputType.Touch then
-                        TouchEndConn = UserInputService.InputEnded:Connect(function(EndedInput: InputObject)
-                            if EndedInput.UserInputType == Enum.UserInputType.Touch then
-                                TouchReleased = true
+                            Dragging = false
+                            StopDragging()
+
+                            if TargetSide ~= Groupbox.Side then
+                                Groupbox.Side = TargetSide
+                                BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
+                                Groupbox:Resize()
+                            end
+                        end
+                    end
+
+                    local ReleaseConn
+                    if Input.UserInputType == Enum.UserInputType.Touch then
+                        ReleaseConn = Input.Changed:Connect(function()
+                            if Input.UserInputState == Enum.UserInputState.End
+                                or Input.UserInputState == Enum.UserInputState.Cancel then
+                                Released = true
                             end
                         end)
                     end
 
-                    local function FinishDrag()
-                        if not Dragging then
-                            return
-                        end
-
-                        if TouchEndConn and TouchEndConn.Connected then
-                            TouchEndConn:Disconnect()
-                        end
-
-                        local MousePos = UserInputService:GetMouseLocation()
-                        local TargetSide = GetTargetSide(MousePos)
-
-                        StopDragging()
-
-                        if TargetSide ~= Groupbox.Side then
-                            Groupbox.Side = TargetSide
-                            BoxHolder.Parent = (TargetSide == 1) and TabLeft or TabRight
-                            Groupbox:Resize()
-                        end
-                    end
-
                     local Heartbeat
                     Heartbeat = RunService.Heartbeat:Connect(function()
-                        if not Dragging then
+                        if not Watching then
                             if Heartbeat and Heartbeat.Connected then
                                 Heartbeat:Disconnect()
+                            end
+                            if ReleaseConn and ReleaseConn.Connected then
+                                ReleaseConn:Disconnect()
                             end
                             return
                         end
 
-                        local MousePos = UserInputService:GetMouseLocation()
-                        if DragGhost then
-                            DragGhost.Position = UDim2.fromOffset(
-                                MousePos.X - DragGhost.AbsoluteSize.X / 2,
-                                MousePos.Y - DragGhost.AbsoluteSize.Y / 2
-                            )
-                        end
-
                         local StillHeld
-                        if HeldInputType == Enum.UserInputType.Touch then
-                            StillHeld = not TouchReleased
+                        if Input.UserInputType == Enum.UserInputType.Touch then
+                            StillHeld = not Released
                         else
                             StillHeld = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
                         end
@@ -12339,7 +12321,43 @@ function Library:CreateWindow(WindowInfo)
                             if Heartbeat and Heartbeat.Connected then
                                 Heartbeat:Disconnect()
                             end
+                            if ReleaseConn and ReleaseConn.Connected then
+                                ReleaseConn:Disconnect()
+                            end
                             FinishDrag()
+                            return
+                        end
+
+                        local MousePos = UserInputService:GetMouseLocation()
+
+                        if not GhostSpawned then
+                            if (MousePos - StartPos).Magnitude < 6 then
+                                return
+                            end
+
+                            GhostSpawned = true
+                            Dragging = true
+
+                            DragGhost = New("Frame", {
+                                BackgroundColor3 = "AccentColor",
+                                BackgroundTransparency = 0.5,
+                                BorderSizePixel = 0,
+                                Size = UDim2.fromOffset(GroupboxHolder.AbsoluteSize.X, GroupboxHolder.AbsoluteSize.Y),
+                                Position = UDim2.fromOffset(GroupboxHolder.AbsolutePosition.X, GroupboxHolder.AbsolutePosition.Y),
+                                ZIndex = 10000,
+                                Parent = ScreenGui,
+                            })
+                            New("UICorner", {
+                                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                                Parent = DragGhost,
+                            })
+                        end
+
+                        if DragGhost then
+                            DragGhost.Position = UDim2.fromOffset(
+                                MousePos.X - DragGhost.AbsoluteSize.X / 2,
+                                MousePos.Y - DragGhost.AbsoluteSize.Y / 2
+                            )
                         end
                     end)
                 end)
