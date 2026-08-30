@@ -82,6 +82,7 @@ local LeftGroupBox = Tabs.Main:AddGroupbox({
 	IconName = "boxes",
 	-- Collapsed = false,
 	-- DisableCollapsing = false,
+	-- SideDraggable = true, --// Drag the groupbox header to move it between the left and right side (Default value = true)
 })
 
 LeftGroupBox:AddButton({
@@ -706,6 +707,16 @@ LeftGroupBox2:AddLabel(
 	"This label spans multiple lines! We're gonna run out of UI space...\nJust kidding! Scroll down!\n\n\nHello from below!",
 	true
 )
+
+-- Groupboxes can be dragged by their header between the left and right side by default.
+-- Set SideDraggable = false on a groupbox if you want to lock it in place.
+local LockedGroupBox = Tabs.Main:AddGroupbox({
+	Side = "Right",
+	Name = "Locked Groupbox",
+	Description = "Can't be dragged to the other side",
+	SideDraggable = false,
+})
+LockedGroupBox:AddLabel("This one stays put no matter what you drag.")
 
 local TabBox = Tabs.Main:AddRightTabbox() -- Add Tabbox on right side
 
