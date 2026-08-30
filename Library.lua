@@ -10360,37 +10360,12 @@ function Library:CreateWindow(WindowInfo)
                 return Library:GetBetterColor(Library.Scheme.BackgroundColor, -1)
             end,
             Name = "Main",
-            ClipsDescendants = true,
             Text = "",
             Position = WindowInfo.Position,
             Size = WindowInfo.Size,
             Visible = false,
             Parent = ScreenGui,
         })
-        local GradientBackground = New("Frame", {
-            BackgroundColor3 = Color3.new(1, 1, 1),
-            BackgroundTransparency = 0.08,
-            ClipsDescendants = true,
-            Size = UDim2.fromScale(1, 1),
-            ZIndex = 0,
-            Parent = MainFrame,
-        })
-        New("UIGradient", {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-                ColorSequenceKeypoint.new(0.42, Color3.fromRGB(105, 105, 105)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0)),
-            }),
-            Rotation = 28,
-            Parent = GradientBackground,
-        })
-        table.insert(
-            Library.Corners,
-            New("UICorner", {
-                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                Parent = GradientBackground,
-            })
-        )
         table.insert(
             Library.Corners,
             New("UICorner", {
