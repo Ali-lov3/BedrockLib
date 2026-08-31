@@ -406,6 +406,8 @@ local Templates = {
         ShowMobileButtons = true,
         MobileButtonsSide = "Left",
 
+        ShowTabName = true,
+
         UnlockMouseWhileOpen = true,
 
         EnableSidebarResize = false,
@@ -10987,7 +10989,7 @@ function Library:CreateWindow(WindowInfo)
                 continue
             end
 
-            Button.Label.Visible = not IsCompact
+            Button.Label.Visible = WindowInfo.ShowTabName and not IsCompact
             Button.Padding.PaddingBottom = UDim.new(0, IsCompact and 6 or 11)
             Button.Padding.PaddingLeft = UDim.new(0, IsCompact and 6 or 12)
             Button.Padding.PaddingRight = UDim.new(0, IsCompact and 6 or 12)
@@ -11132,7 +11134,7 @@ function Library:CreateWindow(WindowInfo)
                 TextSize = 16,
                 TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                Visible = not IsCompact,
+                Visible = WindowInfo.ShowTabName and not IsCompact,
                 Parent = TabButton,
             })
 
@@ -12687,7 +12689,7 @@ function Library:CreateWindow(WindowInfo)
                 TextSize = 16,
                 TextTransparency = 0.5,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                Visible = not IsCompact,
+                Visible = WindowInfo.ShowTabName and not IsCompact,
                 Parent = TabButton,
             })
 
