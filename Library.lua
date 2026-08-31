@@ -10979,7 +10979,7 @@ function Library:CreateWindow(WindowInfo)
             IsCompact = Window:GetSidebarWidth() <= WindowInfo.CompactWidthActivation
         end
 
-        WindowTitle.Visible = not IsCompact
+        WindowTitle.Visible = WindowInfo.ShowTabName and not IsCompact
         if not WindowInfo.Icon then
             WindowIcon.Visible = IsCompact
         end
@@ -11011,6 +11011,9 @@ function Library:CreateWindow(WindowInfo)
     end
 
     function Window:SetSidebarWidth(Width)
+        if not WindowInfo.ShowTabName then
+            Width = WindowInfo.SidebarCompactWidth
+        end
         Width = math.clamp(Width, 48, MainFrame.Size.X.Offset - WindowInfo.MinContainerWidth - 1)
 
         DividerLine.Position = UDim2.fromOffset(Width, 0)
@@ -13699,7 +13702,10 @@ function Library:CreateWindow(WindowInfo)
     end
 
     Window:SetAlwaysOnTop(WindowInfo.AlwaysOnTop)
-    if WindowInfo.EnableCompacting and WindowInfo.SidebarCompacted then
+    if not WindowInfo.ShowTabName then
+        WindowInfo.EnableCompacting = true
+        Window:SetSidebarWidth(WindowInfo.SidebarCompactWidth)
+    elseif WindowInfo.EnableCompacting and WindowInfo.SidebarCompacted then
         Window:SetSidebarWidth(WindowInfo.SidebarCompactWidth)
     end
     if WindowInfo.AutoShow and not Library.ActiveLoading then
